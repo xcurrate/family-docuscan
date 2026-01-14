@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DocuScan Diagnosis</title>
+    <title>DocuScan Enterprise</title>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
@@ -11,360 +11,606 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
     <style>
-        /* CSS DASAR */
-        :root { --bg: #121212; --surface: #1e1e1e; --primary: #4f46e5; --text: #fff; }
-        body { margin: 0; background: var(--bg); color: var(--text); font-family: sans-serif; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+        /* --- CSS MODERN UI/UX --- */
+        :root {
+            --bg-body: #f3f4f6; /* Light Gray modern */
+            --bg-card: #ffffff;
+            --primary: #3b82f6; /* Modern Blue */
+            --primary-dark: #2563eb;
+            --text-main: #111827;
+            --text-sub: #6b7280;
+            --border: #e5e7eb;
+            --radius: 16px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        /* Dark Mode Support (Otomatis ikut sistem HP) */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-body: #111827;
+                --bg-card: #1f2937;
+                --text-main: #f9fafb;
+                --text-sub: #9ca3af;
+                --border: #374151;
+            }
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
-        /* HEADER */
-        header { background: var(--surface); padding: 15px; display: flex; align-items: center; justify-content: space-between; height: 60px; box-sizing: border-box; border-bottom: 1px solid #333; }
-        h1 { margin: 0; font-size: 1.2rem; color: #a5b4fc; }
-        
-        /* VIEWS */
+        body {
+            margin: 0; padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            height: 100dvh;
+            display: flex; flex-direction: column; overflow: hidden;
+        }
+
+        /* HEADER YANG BERSIH */
+        header {
+            background: var(--bg-card);
+            padding: 15px 20px;
+            height: 60px;
+            display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+            z-index: 50;
+        }
+        .brand { font-size: 1.25rem; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+        .btn-icon { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-main); padding: 5px; }
+
+        /* MAIN CONTENT AREA */
         main { flex: 1; position: relative; overflow: hidden; }
-        .view { display: none; width: 100%; height: 100%; position: absolute; background: var(--bg); overflow-y: auto; flex-direction: column; }
+        .view {
+            display: none; width: 100%; height: 100%;
+            position: absolute; top: 0; left: 0;
+            background: var(--bg-body);
+            overflow-y: auto; flex-direction: column;
+        }
         .view.active { display: flex; }
 
-        /* HOME MENU */
-        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 20px; }
-        .btn-card { 
-            background: var(--surface); border: 1px solid #333; padding: 20px; border-radius: 12px;
-            color: white; display: flex; flex-direction: column; align-items: center; gap: 10px; font-size: 0.9rem;
+        /* --- DASHBOARD UI (PDF Converter Style) --- */
+        .dashboard-container {
+            padding: 20px;
+            max-width: 600px; margin: 0 auto; width: 100%;
+            display: flex; flex-direction: column; gap: 20px;
         }
-        .btn-card:active { background: #333; transform: scale(0.98); }
-        .btn-primary { background: var(--primary); border: none; grid-column: span 2; }
+
+        .drop-zone {
+            background: var(--bg-card);
+            border: 2px dashed var(--primary);
+            border-radius: var(--radius);
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex; flex-direction: column; align-items: center; gap: 15px;
+            box-shadow: var(--shadow);
+        }
+        .drop-zone:active { background: #eff6ff; transform: scale(0.98); }
+        .drop-icon { font-size: 3rem; color: var(--primary); }
+        .drop-text h3 { margin: 0; font-size: 1.1rem; }
+        .drop-text p { margin: 5px 0 0; color: var(--text-sub); font-size: 0.9rem; }
         
-        /* CAMERA */
-        #camera-view { background: black; }
+        .btn-pill {
+            background: var(--primary); color: white;
+            padding: 10px 24px; border-radius: 50px;
+            font-weight: 600; border: none; font-size: 0.9rem;
+            margin-top: 10px; pointer-events: none; /* Biar klik tembus ke parent */
+        }
+
+        .info-card {
+            background: var(--bg-card);
+            padding: 20px; border-radius: var(--radius);
+            border: 1px solid var(--border);
+        }
+        .info-card h4 { margin: 0 0 10px 0; color: var(--text-main); font-size: 1rem; }
+        .info-card p, .info-card li { font-size: 0.9rem; color: var(--text-sub); line-height: 1.5; margin-bottom: 5px; }
+        .info-card ul { padding-left: 20px; margin: 0; }
+
+        /* --- CAMERA UI --- */
+        #camera-view { background: #000; }
         video { width: 100%; height: 100%; object-fit: cover; }
-        .cam-controls { position: absolute; bottom: 0; width: 100%; padding: 20px; background: rgba(0,0,0,0.5); display: flex; justify-content: center; gap: 20px; }
-        .shutter { width: 70px; height: 70px; border-radius: 50%; background: white; border: 4px solid #ccc; }
+        .camera-ui {
+            position: absolute; bottom: 0; width: 100%; height: 140px;
+            background: linear-gradient(to top, #000, transparent);
+            display: flex; align-items: center; justify-content: center; gap: 40px;
+            padding-bottom: 20px;
+        }
+        .shutter-ring {
+            width: 72px; height: 72px; border-radius: 50%;
+            border: 4px solid white; display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+        }
+        .shutter-inner { width: 60px; height: 60px; background: white; border-radius: 50%; transition: transform 0.1s; }
+        .shutter-ring:active .shutter-inner { transform: scale(0.9); }
 
-        /* EDITOR */
-        .editor-layout { display: flex; flex-direction: column; height: 100%; }
-        .canvas-box { flex: 1; background: #000; position: relative; display: flex; justify-content: center; align-items: center; }
-        canvas, img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        /* --- EDITOR UI (Professional) --- */
+        .editor-workspace {
+            flex: 1; background: #18181b; /* Dark bg for image focus */
+            display: flex; align-items: center; justify-content: center;
+            position: relative; overflow: hidden;
+        }
+        canvas { max-width: 100%; max-height: 100%; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+
+        .editor-toolbar {
+            background: var(--bg-card);
+            border-top: 1px solid var(--border);
+            padding: 20px;
+            flex-shrink: 0;
+            display: flex; flex-direction: column; gap: 15px;
+            max-height: 50vh; overflow-y: auto;
+        }
+
+        /* Tabs & Controls */
+        .control-group { margin-bottom: 10px; }
+        .label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-sub); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
         
-        .controls { background: var(--surface); padding: 20px; border-top: 1px solid #333; flex-shrink: 0; max-height: 45%; overflow-y: auto; }
-        .row { display: flex; gap: 10px; margin-bottom: 10px; }
-        input, select, button.btn-act { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #444; background: #222; color: white; }
-        button.btn-act { background: #333; cursor: pointer; }
-        button.btn-save { background: var(--primary); color: white; width: 100%; font-weight: bold; }
+        .segmented-control {
+            display: flex; background: var(--bg-body); padding: 4px; border-radius: 10px;
+        }
+        .seg-btn {
+            flex: 1; padding: 8px; border: none; background: transparent;
+            color: var(--text-sub); font-size: 0.9rem; font-weight: 500;
+            border-radius: 8px; cursor: pointer; transition: all 0.2s;
+        }
+        .seg-btn.active { background: var(--bg-card); color: var(--text-main); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
 
-        /* DEBUG CONSOLE (Supaya Error Terlihat) */
-        #debug-console {
-            position: fixed; bottom: 0; left: 0; width: 100%; height: 100px;
-            background: rgba(0,0,0,0.9); color: #0f0; font-family: monospace; font-size: 10px;
-            overflow-y: scroll; padding: 5px; z-index: 9999; border-top: 2px solid #0f0;
-            display: none; /* Default sembunyi, muncul kalau error */
+        .range-wrap { display: flex; align-items: center; gap: 10px; }
+        input[type="range"] { flex: 1; accent-color: var(--primary); }
+        .val-display { font-size: 0.85rem; font-variant-numeric: tabular-nums; width: 60px; text-align: right; }
+
+        .input-modern {
+            width: 100%; padding: 12px; border: 1px solid var(--border);
+            border-radius: 8px; background: var(--bg-body); color: var(--text-main);
+            font-size: 1rem; outline: none;
+        }
+        .input-modern:focus { border-color: var(--primary); }
+
+        .btn-block {
+            width: 100%; padding: 14px; border: none; border-radius: 12px;
+            font-weight: 600; font-size: 1rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-secondary { background: var(--bg-body); color: var(--text-main); border: 1px solid var(--border); }
+        
+        /* Utils */
+        .hidden { display: none !important; }
+        .loader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 100;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            color: white; backdrop-filter: blur(5px);
+        }
+        .spinner {
+            width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.2);
+            border-top-color: var(--primary); border-radius: 50%;
+            animation: spin 1s linear infinite; margin-bottom: 15px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Crop Tools Overlay */
+        .crop-overlay {
+            position: absolute; top: 20px; right: 20px; z-index: 20;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .tool-btn {
+            width: 40px; height: 40px; border-radius: 50%; background: rgba(0,0,0,0.6);
+            border: none; color: white; font-size: 1.2rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
         }
     </style>
 </head>
 <body>
 
+    <div id="loader" class="loader hidden">
+        <div class="spinner"></div>
+        <p id="loader-msg">Memproses...</p>
+    </div>
+
     <header>
-        <button onclick="goHome()" style="background:none;border:none;color:white;font-size:1.5rem;">🏠</button>
-        <h1>DocuScan v3.1</h1>
-        <button onclick="toggleConsole()" style="background:none;border:none;color:#555;font-size:0.8rem;">🐞</button>
+        <div class="brand">
+            <span style="font-size:1.5rem">📄</span> DocuScan Ent.
+        </div>
+        <button id="btn-back" class="btn-icon hidden" onclick="goHome()">✕</button>
     </header>
 
     <main>
         <div id="home-view" class="view active">
-            <div style="padding:20px; text-align:center;">
-                <h2>Menu Utama</h2>
-                <p style="color:#888;">Siap memindai dokumen.</p>
-            </div>
-            <div class="menu-grid">
-                <button onclick="startCamera()" class="btn-card btn-primary">
-                    <span style="font-size:2rem">📸</span>
-                    <span>Mulai Scan</span>
-                </button>
-                <button onclick="document.getElementById('file-input').click()" class="btn-card">
-                    <span style="font-size:2rem">📁</span>
-                    <span>Upload File</span>
+            <div class="dashboard-container">
+                
+                <div class="drop-zone" onclick="startCamera()">
+                    <div class="drop-icon">📸</div>
+                    <div class="drop-text">
+                        <h3>Scan Dokumen</h3>
+                        <p>Gunakan kamera untuk memindai</p>
+                    </div>
+                    <button class="btn-pill">Buka Kamera</button>
+                </div>
+
+                <div class="drop-zone" onclick="document.getElementById('file-input').click()" style="border-color: #9ca3af; border-style: solid;">
+                    <div class="drop-icon" style="color: #6b7280;">📁</div>
+                    <div class="drop-text">
+                        <h3>Upload File</h3>
+                        <p>Pilih dari Galeri Foto</p>
+                    </div>
                     <input type="file" id="file-input" accept="image/*" hidden onchange="handleFile(this)">
-                </button>
-                <button onclick="alert('Versi Aplikasi: 3.1 Pro\nStatus: Aktif')" class="btn-card">
-                    <span style="font-size:2rem">ℹ️</span>
-                    <span>Info App</span>
-                </button>
+                </div>
+
+                <div class="info-card">
+                    <h4>⚙️ Cara Kerja Tools</h4>
+                    <ul>
+                        <li><b>Smart Crop:</b> Gunakan fitur potong untuk meluruskan dokumen miring secara presisi.</li>
+                        <li><b>Magic Filter:</b> Algoritma kontras tinggi untuk membuat teks buram menjadi tajam.</li>
+                        <li><b>Kompresi Cerdas:</b> Atur target ukuran file (KB) agar hemat kuota saat upload.</li>
+                        <li><b>Privasi:</b> Pemrosesan gambar dilakukan lokal di browser Anda sebelum disimpan.</li>
+                    </ul>
+                </div>
+
+                <div style="text-align: center; font-size: 0.8rem; color: var(--text-sub); margin-top: 20px;">
+                    v4.0 Enterprise Edition
+                </div>
             </div>
         </div>
 
         <div id="camera-view" class="view">
             <video id="video" autoplay playsinline muted></video>
-            <div class="cam-controls">
-                <button onclick="goHome()" style="padding:10px; border-radius:20px; border:none;">Batal</button>
-                <button onclick="capturePhoto()" class="shutter"></button>
+            <div class="camera-ui">
+                <button onclick="goHome()" style="background:none; border:none; color:white;">Batal</button>
+                <div class="shutter-ring" onclick="capturePhoto()">
+                    <div class="shutter-inner"></div>
+                </div>
+                <div style="width: 40px;"></div>
             </div>
         </div>
 
         <div id="editor-view" class="view">
-            <div class="editor-layout">
-                <div class="canvas-box">
-                    <canvas id="canvas"></canvas>
-                    <img id="crop-img" style="display:none;">
-                    <button id="btn-crop" onclick="startCrop()" style="position:absolute; top:10px; right:10px; padding:8px; border-radius:20px; border:none; background:rgba(0,0,0,0.7); color:white;">✂️ Crop</button>
-                    <div id="crop-actions" style="position:absolute; bottom:10px; display:none; gap:10px;">
-                        <button onclick="applyCrop()" style="padding:8px 15px; border-radius:20px; border:none; background:#22c55e; color:white;">✅ OK</button>
-                        <button onclick="cancelCrop()" style="padding:8px 15px; border-radius:20px; border:none; background:#ef4444; color:white;">❌ Batal</button>
+            <div class="editor-workspace">
+                <canvas id="canvas"></canvas>
+                <img id="crop-img" class="hidden"> <div class="crop-overlay">
+                    <button id="btn-rotate" class="tool-btn" onclick="rotateImage()" title="Putar">↻</button>
+                    <button id="btn-crop-toggle" class="tool-btn" onclick="toggleCrop()" title="Potong">✂️</button>
+                </div>
+
+                <div id="crop-actions" class="hidden" style="position:absolute; bottom:20px; display:flex; gap:10px; z-index:30;">
+                    <button onclick="applyCrop()" class="btn-pill" style="background:#10b981;">✅ Selesai</button>
+                    <button onclick="cancelCrop()" class="btn-pill" style="background:#ef4444;">❌ Batal</button>
+                </div>
+            </div>
+
+            <div id="main-controls" class="editor-toolbar">
+                
+                <div class="control-group">
+                    <span class="label">Filter Efek</span>
+                    <div class="segmented-control">
+                        <button class="seg-btn active" onclick="applyFilter(this, 'original')">Asli</button>
+                        <button class="seg-btn" onclick="applyFilter(this, 'magic')">Magic ✨</button>
+                        <button class="seg-btn" onclick="applyFilter(this, 'bw')">B&W</button>
                     </div>
                 </div>
-                
-                <div class="controls">
-                    <div class="row">
-                        <button class="btn-act" onclick="applyFilter('original')">Asli</button>
-                        <button class="btn-act" onclick="applyFilter('magic')">Magic</button>
-                        <button class="btn-act" onclick="applyFilter('bw')">B&W</button>
-                    </div>
-                    <div class="row">
-                        <input id="doc-name" placeholder="Nama Dokumen">
-                    </div>
-                    <div class="row">
-                        <select id="doc-category">
-                            <option>KTP</option><option>KK</option><option>Lainnya</option>
+
+                <div class="control-group">
+                    <span class="label">Info Berkas</span>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="doc-name" class="input-modern" placeholder="Nama Dokumen (Wajib)">
+                        <select id="doc-category" class="input-modern" style="width:100px;">
+                            <option>KTP</option><option>KK</option><option>Ijazah</option><option>Lain</option>
                         </select>
                     </div>
-                    <div class="row">
-                        <button class="btn-act" onclick="downloadJPG()">⬇ JPG</button>
-                        <button class="btn-act" onclick="downloadPDF()">⬇ PDF</button>
-                    </div>
-                    <button class="btn-act btn-save" onclick="saveToCloud()">☁️ Simpan Database</button>
                 </div>
+
+                <div class="control-group">
+                    <span class="label">Kompresi Target (Max Size)</span>
+                    <div class="range-wrap">
+                        <span style="font-size:0.9rem;">High Quality</span>
+                        <input type="range" id="comp-slider" min="100" max="1000" step="50" value="300" oninput="updateSizeLabel(this.value)">
+                        <div class="val-display"><span id="size-val">300</span> KB</div>
+                    </div>
+                </div>
+
+                <div style="display:flex; gap:10px;">
+                    <button onclick="downloadFile('jpg')" class="btn-block btn-secondary">⬇ JPG</button>
+                    <button onclick="downloadFile('pdf')" class="btn-block btn-secondary">⬇ PDF</button>
+                </div>
+                <button onclick="saveToCloud()" class="btn-block btn-primary">☁️ Simpan Database</button>
             </div>
         </div>
     </main>
 
-    <div id="debug-console">CONSOLE LOG (Klik 🐞 di atas untuk tutup/buka)<br></div>
-
     <script>
-        // --- 1. SYSTEM LOGGING (Supaya Error Muncul di Layar) ---
-        const debugEl = document.getElementById('debug-console');
-        function log(msg, type='info') {
-            console.log(msg);
-            const color = type === 'error' ? 'red' : '#0f0';
-            debugEl.innerHTML += `<span style="color:${color}">> ${msg}</span><br>`;
-            // Auto scroll ke bawah
-            debugEl.scrollTop = debugEl.scrollHeight;
-            if(type === 'error') debugEl.style.display = 'block'; // Munculkan console kalau error
-        }
+        // --- KONFIGURASI SUPABASE (WAJIB ISI) ---
+const SUPABASE_URL = 'https://sbxtfqidotarniglzban.supabase.co'; // Ganti dengan URL Supabase kamu
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNieHRmcWlkb3Rhcm5pZ2x6YmFuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMjgxODQsImV4cCI6MjA4MzgwNDE4NH0.MCiWNCcmQRBmAvAbsbcpdMbSOWAg7zPqJynpCLf1RKQ';
 
-        window.onerror = function(msg, url, line) {
-            log(`ERROR SYSTEM: ${msg} (Line ${line})`, 'error');
-            alert(`TERJADI ERROR: ${msg}`);
-            return false;
-        };
-
-        function toggleConsole() {
-            debugEl.style.display = debugEl.style.display === 'none' ? 'block' : 'none';
-        }
-
-        log("Aplikasi dimulai...");
-
-        // --- 2. SETUP VARIABEL ---
+        // --- STATE ---
         let stream = null;
-        let originalData = null;
         let cropper = null;
-        const video = document.getElementById('video');
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        const imgForCrop = document.getElementById('crop-img');
+        let originalImageData = null; // Menyimpan pixel asli sebelum filter
+        let currentBlob = null; // Menyimpan hasil akhir untuk upload
+        
+        const els = {
+            video: document.getElementById('video'),
+            canvas: document.getElementById('canvas'),
+            imgCrop: document.getElementById('crop-img'),
+            loader: document.getElementById('loader'),
+            msg: document.getElementById('loader-msg')
+        };
+        const ctx = els.canvas.getContext('2d', { willReadFrequently: true });
 
-        // --- 3. NAVIGASI ---
+        // --- NAVIGATION ---
         function goHome() {
             stopCamera();
+            resetEditor();
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
             document.getElementById('home-view').classList.add('active');
+            document.getElementById('btn-back').classList.add('hidden');
         }
 
-        function showView(id) {
+        function showEditor() {
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
+            document.getElementById('editor-view').classList.add('active');
+            document.getElementById('btn-back').classList.remove('hidden');
         }
 
-        // --- 4. KAMERA ---
+        function loading(show, text="Memproses...") {
+            els.msg.innerText = text;
+            if(show) els.loader.classList.remove('hidden');
+            else els.loader.classList.add('hidden');
+        }
+
+        // --- CAMERA & INPUT ---
         async function startCamera() {
-            log("Mencoba buka kamera...");
             try {
-                showView('camera-view');
+                document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+                document.getElementById('camera-view').classList.add('active');
+                
                 stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'environment' }
+                    video: { facingMode: 'environment', width: { ideal: 1920 } }
                 });
-                video.srcObject = stream;
-                log("Kamera berhasil dibuka.");
+                els.video.srcObject = stream;
             } catch (err) {
-                log("Kamera Belakang Gagal: " + err.message, 'error');
-                // Coba fallback
-                try {
-                    stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                    video.srcObject = stream;
-                    log("Fallback ke kamera default berhasil.");
-                } catch(e) {
-                    log("Semua kamera gagal: " + e.message, 'error');
-                    alert("Gagal buka kamera. Cek izin browser.");
-                    goHome();
-                }
+                alert("Gagal akses kamera: " + err.message);
+                goHome();
             }
         }
 
         function capturePhoto() {
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            ctx.drawImage(video, 0, 0);
+            els.canvas.width = els.video.videoWidth;
+            els.canvas.height = els.video.videoHeight;
+            ctx.drawImage(els.video, 0, 0);
             stopCamera();
-            openEditor();
+            initEditorData();
         }
 
         function stopCamera() {
             if(stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
         }
 
-        // --- 5. UPLOAD ---
         function handleFile(input) {
             const file = input.files[0];
             if(!file) return;
-            log("File dipilih: " + file.name);
+            loading(true, "Membaca file...");
             const reader = new FileReader();
             reader.onload = (e) => {
                 const img = new Image();
                 img.onload = () => {
-                    canvas.width = img.width;
-                    canvas.height = img.height;
+                    els.canvas.width = img.width;
+                    els.canvas.height = img.height;
                     ctx.drawImage(img, 0, 0);
-                    openEditor();
+                    loading(false);
+                    initEditorData();
                 };
                 img.src = e.target.result;
             };
             reader.readAsDataURL(file);
         }
 
-        // --- 6. EDITOR ---
-        function openEditor() {
-            originalData = ctx.getImageData(0,0, canvas.width, canvas.height);
-            // Reset Crop UI
+        // --- EDITOR CORE ---
+        function initEditorData() {
+            originalImageData = ctx.getImageData(0,0, els.canvas.width, els.canvas.height);
+            showEditor();
+        }
+
+        function resetEditor() {
             if(cropper) { cropper.destroy(); cropper = null; }
-            imgForCrop.style.display = 'none';
-            canvas.style.display = 'block';
-            document.getElementById('crop-actions').style.display = 'none';
-            document.getElementById('btn-crop').style.display = 'block';
-            showView('editor-view');
+            els.imgCrop.classList.add('hidden');
+            els.canvas.classList.remove('hidden');
+            document.getElementById('main-controls').classList.remove('hidden');
+            document.getElementById('crop-actions').classList.add('hidden');
+            document.getElementById('doc-name').value = '';
         }
 
-        // --- 7. CROPPER ---
-        function startCrop() {
-            if(typeof Cropper === 'undefined') return alert("Library Crop belum siap/gagal load.");
+        // --- SMART CROPPER ---
+        function toggleCrop() {
+            if(cropper) return; // Sudah aktif
             
-            canvas.style.display = 'none';
-            imgForCrop.style.display = 'block';
-            imgForCrop.src = canvas.toDataURL();
-            
-            document.getElementById('btn-crop').style.display = 'none';
-            document.getElementById('crop-actions').style.display = 'flex';
+            // UI Switch
+            els.canvas.classList.add('hidden');
+            els.imgCrop.classList.remove('hidden');
+            els.imgCrop.src = els.canvas.toDataURL();
+            document.getElementById('main-controls').classList.add('hidden'); // Sembunyikan panel bawah
+            document.getElementById('crop-actions').classList.remove('hidden'); // Munculkan tombol OK/Cancel
 
-            cropper = new Cropper(imgForCrop, { viewMode: 1, autoCropArea: 0.8 });
+            // Init Cropper JS
+            cropper = new Cropper(els.imgCrop, {
+                viewMode: 1,
+                dragMode: 'move',
+                autoCropArea: 0.8,
+                restore: false,
+                guides: true,
+                center: true,
+                highlight: false,
+                cropBoxMovable: true,
+                cropBoxResizable: true,
+                toggleDragModeOnDblclick: false,
+            });
         }
 
-        function applyCrop() {
-            const cropped = cropper.getCroppedCanvas();
-            canvas.width = cropped.width;
-            canvas.height = cropped.height;
-            ctx.drawImage(cropped, 0, 0);
-            originalData = ctx.getImageData(0,0, canvas.width, canvas.height);
-            openEditor();
-        }
-
-        function cancelCrop() { openEditor(); }
-
-        // --- 8. FILTER ---
-        function applyFilter(type) {
-            if(!originalData) return;
-            ctx.putImageData(originalData, 0, 0);
-            
-            if(type === 'magic') {
-                createImageBitmap(originalData).then(bmp => {
-                    ctx.save();
-                    ctx.filter = 'contrast(1.4) brightness(1.1) saturate(1.2)';
-                    ctx.drawImage(bmp, 0, 0);
-                    ctx.restore();
-                });
-            } else if(type === 'bw') {
-                const d = ctx.getImageData(0,0,canvas.width,canvas.height);
-                for(let i=0; i<d.data.length; i+=4) {
-                    const gray = 0.299*d.data[i] + 0.587*d.data[i+1] + 0.114*d.data[i+2];
-                    const val = gray < 128 ? 0 : 255;
-                    d.data[i] = d.data[i+1] = d.data[i+2] = val;
-                }
-                ctx.putImageData(d, 0, 0);
+        function rotateImage() {
+            if(cropper) {
+                cropper.rotate(90);
+            } else {
+                // Manual rotate logic for canvas if needed, 
+                // but simpler to just enforce crop mode for rotation
+                toggleCrop();
+                setTimeout(() => cropper.rotate(90), 100);
             }
         }
 
-        // --- 9. DOWNLOAD ---
-        function downloadJPG() {
-            const link = document.createElement('a');
-            link.download = 'scan_' + Date.now() + '.jpg';
-            link.href = canvas.toDataURL('image/jpeg', 0.8);
-            link.click();
-        }
-
-        function downloadPDF() {
-            if(typeof window.jspdf === 'undefined') return alert("Library PDF gagal load.");
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF();
-            const img = canvas.toDataURL('image/jpeg', 0.8);
-            const props = pdf.getImageProperties(img);
-            const pdfW = 210; 
-            const pdfH = (props.height * pdfW) / props.width;
-            pdf.addImage(img, 'JPEG', 0, 0, pdfW, pdfH);
-            pdf.save('scan.pdf');
-        }
-
-        // --- 10. CLOUD SAVE ---
-        async function saveToCloud() {
-            // KONFIGURASI SUPABASE (GANTI DISINI!)
-            const URL = 'https://sbxtfqidotarniglzban.supabase.co'; 
-            const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNieHRmcWlkb3Rhcm5pZ2x6YmFuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMjgxODQsImV4cCI6MjA4MzgwNDE4NH0.MCiWNCcmQRBmAvAbsbcpdMbSOWAg7zPqJynpCLf1RKQ';
-
-            if(URL.includes('GANTI')) return alert("Eits! Anda belum mengisi URL Supabase di dalam kode index.html");
+        function applyCrop() {
+            if(!cropper) return;
+            const croppedCanvas = cropper.getCroppedCanvas();
+            els.canvas.width = croppedCanvas.width;
+            els.canvas.height = croppedCanvas.height;
+            ctx.drawImage(croppedCanvas, 0, 0);
             
-            const name = document.getElementById('doc-name').value;
-            if(!name) return alert("Isi nama dokumen dulu!");
+            // Update data asli untuk filter
+            originalImageData = ctx.getImageData(0,0, els.canvas.width, els.canvas.height);
+            resetEditor();
+        }
 
-            log("Memulai upload...");
-            try {
-                // Inisialisasi Supabase Disini (Biar kalau error di awal ga bikin macet app)
-                if(typeof supabase === 'undefined' || !window.supabase) throw new Error("Library Supabase Error");
-                
-                const client = window.supabase.createClient(URL, KEY);
-                
-                canvas.toBlob(async (blob) => {
-                    try {
-                        const fileName = Date.now() + '.jpg';
-                        // Upload
-                        const { error: upErr } = await client.storage.from('scans').upload(fileName, blob);
-                        if(upErr) throw upErr;
-                        log("Upload file sukses.");
+        function cancelCrop() {
+            resetEditor();
+        }
 
-                        // Get URL
-                        const { data } = client.storage.from('scans').getPublicUrl(fileName);
-                        
-                        // DB Insert
-                        const { error: dbErr } = await client.from('documents').insert([{
-                            name: name,
-                            category: document.getElementById('doc-category').value,
-                            image_url: data.publicUrl
-                        }]);
-                        if(dbErr) throw dbErr;
+        // --- FILTER ---
+        function applyFilter(btn, type) {
+            // UI Toggle
+            document.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
 
-                        alert("Berhasil Simpan! ✅");
-                        goHome();
-                    } catch(err) {
-                        log("Error saat proses upload/db: " + err.message, 'error');
-                        alert("Gagal: " + err.message);
+            if(!originalImageData) return;
+            
+            loading(true, "Menerapkan filter...");
+            setTimeout(() => {
+                ctx.putImageData(originalImageData, 0, 0); // Reset
+
+                if(type === 'magic') {
+                    createImageBitmap(originalImageData).then(bmp => {
+                        ctx.save();
+                        ctx.filter = 'contrast(1.4) brightness(1.1) saturate(1.2)';
+                        ctx.drawImage(bmp, 0, 0);
+                        ctx.restore();
+                        loading(false);
+                    });
+                } else if(type === 'bw') {
+                    const d = ctx.getImageData(0,0, els.canvas.width, els.canvas.height);
+                    const data = d.data;
+                    for (let i = 0; i < data.length; i += 4) {
+                        const gray = 0.299*data[i] + 0.587*data[i+1] + 0.114*data[i+2];
+                        const val = gray < 128 ? 0 : 255;
+                        data[i] = data[i+1] = data[i+2] = val;
                     }
-                }, 'image/jpeg', 0.7);
+                    ctx.putImageData(d, 0, 0);
+                    loading(false);
+                } else {
+                    loading(false);
+                }
+            }, 50);
+        }
+
+        // --- COMPRESSION LOGIC (NEW) ---
+        function updateSizeLabel(val) {
+            document.getElementById('size-val').innerText = val;
+        }
+
+        // Fungsi canggih untuk mendapatkan blob dengan ukuran target
+        async function getOptimizedBlob(targetSizeKB) {
+            let quality = 0.9;
+            let blob = null;
+            let min = 0.1;
+            let max = 1.0;
+            
+            // Binary search sederhana untuk kualitas
+            // Loop max 5 kali untuk performa
+            for(let i=0; i<5; i++) {
+                blob = await new Promise(r => els.canvas.toBlob(r, 'image/jpeg', quality));
+                const sizeKB = blob.size / 1024;
+                
+                if(sizeKB > targetSizeKB + 50) { // Terlalu besar
+                    max = quality;
+                    quality = (min + max) / 2;
+                } else if(sizeKB < targetSizeKB - 50) { // Terlalu kecil
+                    min = quality;
+                    quality = (min + max) / 2;
+                } else {
+                    break; // Pas
+                }
+            }
+            return blob;
+        }
+
+        // --- DOWNLOAD & SAVE ---
+        async function downloadFile(type) {
+            const name = (document.getElementById('doc-name').value || 'Scan') + '_' + Date.now();
+            const targetSize = parseInt(document.getElementById('comp-slider').value);
+            
+            loading(true, "Mengompresi...");
+            const blob = await getOptimizedBlob(targetSize);
+            const url = URL.createObjectURL(blob);
+
+            if(type === 'jpg') {
+                const link = document.createElement('a');
+                link.download = name + '.jpg';
+                link.href = url;
+                link.click();
+            } else {
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF();
+                
+                // Convert blob url to base64 for jsPDF
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    const imgData = reader.result;
+                    const props = pdf.getImageProperties(imgData);
+                    const pdfW = 210; 
+                    const pdfH = (props.height * pdfW) / props.width;
+                    pdf.addImage(imgData, 'JPEG', 0, 0, pdfW, pdfH);
+                    pdf.save(name + '.pdf');
+                }
+                reader.readAsDataURL(blob);
+            }
+            loading(false);
+        }
+
+        async function saveToCloud() {
+            const name = document.getElementById('doc-name').value;
+            if(!name) return alert("Mohon isi nama dokumen!");
+
+            const targetSize = parseInt(document.getElementById('comp-slider').value);
+            loading(true, "Mengupload ke Cloud...");
+
+            try {
+                if(SUPABASE_URL.includes('GANTI')) throw new Error("URL Database belum disetting!");
+                
+                // Inisialisasi on-the-fly
+                const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                
+                const blob = await getOptimizedBlob(targetSize);
+                const fileName = Date.now() + '.jpg';
+
+                // 1. Upload Storage
+                const { error: upErr } = await supabase.storage.from('scans').upload(fileName, blob);
+                if(upErr) throw upErr;
+
+                // 2. Get Public URL
+                const { data } = supabase.storage.from('scans').getPublicUrl(fileName);
+
+                // 3. Insert Database
+                const { error: dbErr } = await supabase.from('documents').insert([{
+                    name: name,
+                    category: document.getElementById('doc-category').value,
+                    image_url: data.publicUrl
+                }]);
+                if(dbErr) throw dbErr;
+
+                alert("Sukses! Dokumen tersimpan aman.");
+                goHome();
 
             } catch(e) {
-                log("Koneksi Supabase Gagal: " + e.message, 'error');
-                alert("Gagal koneksi database. Cek Console di bawah layar.");
+                alert("Gagal: " + e.message);
+            } finally {
+                loading(false);
             }
         }
     </script>
