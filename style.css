@@ -1,33 +1,200 @@
-:root { --primary: #2563eb; --dark: #0f172a; --surface: #1e293b; --text: #f1f5f9; }
-body { margin: 0; font-family: sans-serif; background-color: var(--dark); color: var(--text); height: 100vh; display: flex; flex-direction: column; }
-header { background: var(--surface); padding: 15px; display: flex; justify-content: space-between; align-items: center; z-index: 10; }
-h1 { margin: 0; font-size: 1.1rem; }
-.btn-icon { background: none; border: none; font-size: 1.5rem; cursor: pointer; }
+:root {
+    /* Modern Dark Theme Palette */
+    --bg-main: #121212; /* Latar belakang utama */
+    --bg-surface: #1e1e1e; /* Latar belakang kartu/panel */
+    --bg-surface-2: #2c2c2c; /* Latar belakang input/tombol sekunder */
+    --primary: #4f46e5; /* Warna aksen utama (Indigo) */
+    --primary-hover: #6366f1;
+    --text-primary: #ffffff;
+    --text-secondary: #a1a1aa;
+    --danger: #ef4444;
+    --success: #22c55e;
+    --border-radius: 12px;
+    --border-radius-sm: 8px;
+}
 
+body {
+    margin: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Mencegah scroll ganda */
+}
+
+/* --- HEADER --- */
+header {
+    background: var(--bg-surface);
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #333;
+    z-index: 10;
+}
+.header-left { display: flex; align-items: center; gap: 15px; }
+h1 { margin: 0; font-size: 1.25rem; font-weight: 600; background: linear-gradient(to right, var(--primary), #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.btn-icon { background: none; border: none; font-size: 1.5rem; color: var(--text-primary); cursor: pointer; padding: 5px; }
+
+/* --- VIEW STRUCTURE --- */
 main { flex: 1; position: relative; overflow: hidden; }
-.view { display: none; width: 100%; height: 100%; position: absolute; background: var(--dark); overflow-y: auto; }
+.view { 
+    display: none; width: 100%; height: 100%; 
+    position: absolute; top: 0; left: 0; 
+    background: var(--bg-main); 
+    overflow-y: auto; /* Scroll jika konten panjang */
+    -webkit-overflow-scrolling: touch;
+}
 .view.active { display: flex; flex-direction: column; }
 
-/* Home */
-.menu-container { padding: 30px; text-align: center; }
-.menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
-.menu-card { background: var(--surface); border: 1px solid #334155; border-radius: 12px; padding: 20px; color: var(--text); display: flex; flex-direction: column; align-items: center; gap: 10px; cursor: pointer; }
-.menu-card:active { transform: scale(0.95); }
-.main-action { background: var(--primary); grid-column: span 2; border: none; }
-.icon { font-size: 2rem; }
+/* --- UTILS --- */
+.hidden { display: none !important; }
 
-/* Camera */
+/* --- 1. HOME VIEW --- */
+.hero-section { padding: 40px 20px 20px; text-align: center; }
+.hero-section h2 { font-size: 1.8rem; margin-bottom: 10px; }
+.hero-section p { color: var(--text-secondary); }
+
+.menu-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    padding: 20px;
+}
+.menu-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--bg-surface-2);
+    border-radius: var(--border-radius);
+    padding: 25px 15px;
+    display: flex; flex-direction: column; align-items: center; gap: 15px;
+    cursor: pointer; transition: all 0.2s; color: var(--text-primary);
+}
+.menu-card:active { transform: scale(0.98); background: var(--bg-surface-2); }
+.menu-card .icon { font-size: 2.5rem; }
+.menu-card .label { font-weight: 500; }
+.menu-card.primary { grid-column: span 2; background: var(--primary); border: none; }
+.menu-card.tertiary { grid-column: span 2; flex-direction: row; justify-content: center; padding: 15px; .icon { font-size: 1.5rem; } }
+
+
+/* --- 2. CAMERA VIEW --- */
 #camera-view { background: black; }
 video { width: 100%; height: 100%; object-fit: cover; }
-.controls-overlay { position: absolute; bottom: 30px; width: 100%; display: flex; justify-content: space-around; align-items: center; }
-.btn-circle { width: 70px; height: 70px; border-radius: 50%; background: white; border: 4px solid rgba(255,255,255,0.5); }
+.camera-controls {
+    position: absolute; bottom: 30px; width: 100%;
+    display: flex; justify-content: space-around; align-items: center;
+    padding-bottom: env(safe-area-inset-bottom); /* Support iPhone notch */
+}
+.btn-shutter {
+    width: 70px; height: 70px; border-radius: 50%;
+    background: white; border: 4px solid rgba(255,255,255,0.3);
+    transition: transform 0.1s;
+}
+.btn-shutter:active { transform: scale(0.9); }
+.btn-text { background: none; border: none; color: white; font-size: 1rem; padding: 10px; }
 
-/* Editor */
-canvas { width: 100%; max-height: 40vh; object-fit: contain; background: black; }
-.filter-controls { display: flex; justify-content: center; gap: 10px; padding: 10px; background: var(--surface); }
-.filter-btn { background: #475569; color: white; border: none; padding: 8px 15px; border-radius: 20px; }
-.form-container { padding: 20px; display: flex; flex-direction: column; gap: 10px; }
-input, select { padding: 12px; border-radius: 8px; border: 1px solid #475569; background: var(--surface); color: white; width: 100%; box-sizing: border-box; }
-.btn-primary { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 8px; font-weight: bold; }
-.btn-secondary { background: #475569; color: white; border: none; padding: 10px; border-radius: 8px; margin-top: 5px; }
-.hidden { display: none !important; }
+
+/* --- 3. EDITOR VIEW (Modern Layout) --- */
+.editor-layout { display: flex; flex-direction: column; height: 100%; }
+
+/* Toolbar Atas */
+.editor-toolbar.top {
+    background: var(--bg-surface); padding: 10px;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid #333; min-height: 50px;
+}
+.btn-tool {
+    background: var(--bg-surface-2); color: var(--text-primary);
+    border: none; padding: 8px 12px; border-radius: var(--border-radius-sm);
+    font-size: 0.9rem; display: flex; align-items: center; gap: 5px;
+}
+.btn-tool.confirm { background: var(--success); color: black; }
+.btn-tool.cancel { background: var(--danger); }
+
+/* Canvas Area */
+.canvas-container {
+    flex: 1; /* Mengisi ruang tengah */
+    background: #000;
+    display: flex; justify-content: center; align-items: center;
+    overflow: hidden; position: relative;
+}
+canvas, #image-for-cropper {
+    max-width: 100%; max-height: 100%; object-fit: contain;
+    /* Penting untuk CropperJS agar tidak melebihi container */
+    display: block; 
+}
+/* Override style CropperJS agar sesuai tema gelap */
+.cropper-bg { background-image: none; background-color: #121212; }
+.cropper-modal { opacity: 0.8; background-color: #000; }
+
+/* Controls Wrapper Bawah */
+.editor-controls-wrapper {
+    background: var(--bg-surface);
+    border-top-left-radius: 20px; border-top-right-radius: 20px;
+    padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.3);
+    max-height: 50vh; overflow-y: auto; /* Agar bisa discroll di HP kecil */
+}
+
+/* Filter Tabs */
+.filter-tabs {
+    display: flex; background: var(--bg-surface-2);
+    border-radius: var(--border-radius); padding: 4px; margin-bottom: 20px;
+}
+.tab-btn {
+    flex: 1; background: none; border: none; color: var(--text-secondary);
+    padding: 10px; border-radius: var(--border-radius-sm); font-weight: 500;
+    transition: all 0.2s;
+}
+.tab-btn.active { background: var(--bg-surface); color: var(--text-primary); box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+
+/* Form Section */
+.form-section { display: flex; flex-direction: column; gap: 15px; }
+.input-group { display: flex; gap: 10px; }
+input, select {
+    padding: 12px; background: var(--bg-surface-2); border: 1px solid #333;
+    border-radius: var(--border-radius-sm); color: var(--text-primary);
+    font-size: 1rem; outline: none;
+}
+input { flex: 2; } select { flex: 1; }
+input:focus, select:focus { border-color: var(--primary); }
+
+.compression-select { display: flex; align-items: center; gap: 10px; color: var(--text-secondary); font-size: 0.9rem;}
+.compression-select select { padding: 8px; }
+
+/* Action Buttons Grid */
+.action-buttons-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;
+}
+.btn-action {
+    border: none; padding: 14px; border-radius: var(--border-radius);
+    font-weight: 600; font-size: 1rem; cursor: pointer;
+    display: flex; justify-content: center; align-items: center; gap: 8px;
+}
+.btn-action.primary { background: var(--primary); color: white; }
+.btn-action.primary:active { background: var(--primary-hover); }
+.btn-action.outline { background: transparent; border: 2px solid var(--bg-surface-2); color: var(--text-primary); }
+.btn-action.outline:active { background: var(--bg-surface-2); }
+.full-width { grid-column: span 2; }
+
+
+/* --- 4. CONTENT VIEW (About) --- */
+.content-view { padding: 30px 20px; }
+.content-view h2 { color: var(--primary); }
+.info-block { background: var(--bg-surface); padding: 20px; border-radius: var(--border-radius); margin: 20px 0; }
+.info-block li { margin-bottom: 10px; line-height: 1.5; color: var(--text-secondary); }
+.info-block strong { color: var(--text-primary); }
+
+
+/* --- LOADER --- */
+.loader-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.8); z-index: 100;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+}
+.spinner {
+    width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.3);
+    border-top: 4px solid var(--primary); border-radius: 50%;
+    animation: spin 1s linear infinite; margin-bottom: 15px;
+}
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }

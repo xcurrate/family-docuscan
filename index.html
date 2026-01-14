@@ -3,70 +3,137 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Family DocuScan Modular</title>
+    <title>Family DocuScan Pro</title>
+    
     <link rel="stylesheet" href="style.css">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="app.js?v=1" defer></script>
-
+    
+    <script src="app.js" defer></script>
 </head>
 <body>
 
     <header>
-        <h1>Family DocuScan 📄</h1>
-        <button id="btn-home" class="btn-icon hidden">🏠</button>
+        <div class="header-left">
+            <button id="btn-home" class="btn-icon hidden">←</button>
+            <h1>DocuScan Pro</h1>
+        </div>
     </header>
 
     <main>
         <div id="home-view" class="view active">
-            <div class="menu-container">
-                <h2>Menu Utama</h2>
-                <div class="menu-grid">
-                    <button id="nav-camera" class="menu-card main-action">
-                        <span class="icon">📸</span>
-                        <span>Scan Dokumen</span>
-                    </button>
-                    
-                    <button id="nav-upload" class="menu-card">
-                        <span class="icon">📁</span>
-                        <span>Upload File</span>
-                        <input type="file" id="file-input" accept="image/*" hidden>
-                    </button>
-                </div>
+            <div class="hero-section">
+                <h2>Pindai & Arsipkan Dokumen Keluarga</h2>
+                <p>Cepat, Aman, dan Berkualitas Tinggi.</p>
+            </div>
+            
+            <div class="menu-grid">
+                <button id="nav-camera" class="menu-card primary">
+                    <span class="icon">📸</span>
+                    <span class="label">Mulai Scan Baru</span>
+                </button>
+                
+                <button id="nav-upload" class="menu-card secondary">
+                    <span class="icon">📁</span>
+                    <span class="label">Upload dari Galeri</span>
+                    <input type="file" id="file-input" accept="image/*" hidden>
+                </button>
+                
+                 <button id="nav-about" class="menu-card tertiary">
+                    <span class="icon">ℹ️</span>
+                    <span class="label">Cara Kerja & Info</span>
+                </button>
             </div>
         </div>
 
         <div id="camera-view" class="view">
             <video id="video" autoplay playsinline muted></video>
-            <div class="controls-overlay">
-                <button id="nav-cancel-cam" style="color:white; background:none; border:none;">Batal</button>
-                <button id="btn-capture" class="btn-circle"></button>
-                <div style="width: 40px;"></div>
-            </div>
+            <div class="camera-controls">
+                <button id="nav-cancel-cam" class="btn-text">Batal</button>
+                <button id="btn-capture" class="btn-shutter"></button>
+                <div style="width: 50px;"></div> </div>
         </div>
 
-        <div id="editor-view" class="view">
-            <canvas id="canvas"></canvas>
+        <div id="editor-view" class="view editor-layout">
+            <div class="editor-toolbar top">
+                <button id="btn-start-crop" class="btn-tool">✂️ Potong/Luruskan</button>
+                 <div id="crop-actions" class="hidden">
+                    <button id="btn-apply-crop" class="btn-tool confirm">✅ Terapkan</button>
+                    <button id="btn-cancel-crop" class="btn-tool cancel">❌ Batal</button>
+                </div>
+            </div>
+
+            <div class="canvas-container">
+                <canvas id="canvas"></canvas>
+                <img id="image-for-cropper" class="hidden">
+            </div>
             
-            <div class="filter-controls">
-                <button data-filter="original" class="filter-btn">Asli</button>
-                <button data-filter="magic" class="filter-btn">Magic</button>
-                <button data-filter="bw" class="filter-btn">B&W</button>
-            </div>
+            <div class="editor-controls-wrapper">
+                 <div class="filter-tabs">
+                    <button data-filter="original" class="tab-btn active">Asli</button>
+                    <button data-filter="magic" class="tab-btn">Magic ✨</button>
+                    <button data-filter="bw" class="tab-btn">Dokumen B&W</button>
+                </div>
 
-            <div class="form-container">
-                <input type="text" id="doc-name" placeholder="Nama Dokumen" required>
-                <select id="doc-category">
-                    <option value="KTP">KTP</option>
-                    <option value="KK">Kartu Keluarga</option>
-                    <option value="Lainnya">Lainnya</option>
-                </select>
-                <button id="btn-save" class="btn-primary">Simpan</button>
-                <button id="nav-cancel-edit" class="btn-secondary">Batal</button>
+                <div class="form-section">
+                     <div class="input-group">
+                        <input type="text" id="doc-name" placeholder="Nama Dokumen (mis: KTP Ayah)" required>
+                        <select id="doc-category">
+                            <option value="KTP">KTP</option>
+                            <option value="KK">Kartu Keluarga</option>
+                            <option value="Akta">Akta Kelahiran</option>
+                            <option value="Ijazah">Ijazah/Sertifikat</option>
+                            <option value="Lainnya" selected>Lainnya</option>
+                        </select>
+                    </div>
+
+                    <div class="compression-select">
+                         <label for="compression-level">Ukuran File:</label>
+                        <select id="compression-level">
+                            <option value="0.92">Tinggi (Standar)</option>
+                            <option value="0.7">Sedang (Lebih Kecil)</option>
+                            <option value="0.5">Rendah (Hemat Kuota)</option>
+                        </select>
+                    </div>
+
+                    <div class="action-buttons-grid">
+                        <button id="btn-download-jpg" class="btn-action outline">⬇️ Unduh JPG</button>
+                        <button id="btn-download-pdf" class="btn-action outline">📄 Unduh PDF</button>
+                        <button id="btn-save-cloud" class="btn-action primary full-width">☁️ Simpan ke Database</button>
+                    </div>
+                </div>
             </div>
         </div>
+
+        <div id="about-view" class="view content-view">
+            <h2>Tentang DocuScan Pro</h2>
+            <div class="info-block">
+                <h3>Cara Kerja Alat Ini:</h3>
+                <ol>
+                    <li>**Tangkap:** Menggunakan kamera HP untuk mengambil citra dokumen.</li>
+                    <li>**Proses Lokal:** Semua pemrosesan gambar (filter, crop) dilakukan langsung di browser HP Anda (Client-side) agar cepat dan privasi terjaga sebelum diupload.</li>
+                    <li>**Filter Cerdas:** <ul>
+                            <li>*Magic:* Meningkatkan kontras dan kecerahan untuk kertas buram.</li>
+                            <li>*B&W:* Menggunakan teknik 'Thresholding' untuk mengubah gambar menjadi hitam putih murni, menghilangkan bayangan.</li>
+                        </ul>
+                    </li>
+                    <li>**Penyimpanan:** Hasil akhir diamankan di Supabase Cloud Storage.</li>
+                </ol>
+            </div>
+             <p>Versi 3.0 - Modern UI & Advanced Tools</p>
+        </div>
+
     </main>
     
-    <div id="loader" class="hidden">Memproses...</div>
+    <div id="loader" class="loader-overlay hidden">
+        <div class="spinner"></div>
+        <p id="loader-text">Memproses...</p>
+    </div>
 
 </body>
 </html>
