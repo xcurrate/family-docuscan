@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Family DocuScan Modular</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="app.js?v=1" defer></script>
+
+</head>
+<body>
+
+    <header>
+        <h1>Family DocuScan 📄</h1>
+        <button id="btn-home" class="btn-icon hidden">🏠</button>
+    </header>
+
+    <main>
+        <div id="home-view" class="view active">
+            <div class="menu-container">
+                <h2>Menu Utama</h2>
+                <div class="menu-grid">
+                    <button id="nav-camera" class="menu-card main-action">
+                        <span class="icon">📸</span>
+                        <span>Scan Dokumen</span>
+                    </button>
+                    
+                    <button id="nav-upload" class="menu-card">
+                        <span class="icon">📁</span>
+                        <span>Upload File</span>
+                        <input type="file" id="file-input" accept="image/*" hidden>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="camera-view" class="view">
+            <video id="video" autoplay playsinline muted></video>
+            <div class="controls-overlay">
+                <button id="nav-cancel-cam" style="color:white; background:none; border:none;">Batal</button>
+                <button id="btn-capture" class="btn-circle"></button>
+                <div style="width: 40px;"></div>
+            </div>
+        </div>
+
+        <div id="editor-view" class="view">
+            <canvas id="canvas"></canvas>
+            
+            <div class="filter-controls">
+                <button data-filter="original" class="filter-btn">Asli</button>
+                <button data-filter="magic" class="filter-btn">Magic</button>
+                <button data-filter="bw" class="filter-btn">B&W</button>
+            </div>
+
+            <div class="form-container">
+                <input type="text" id="doc-name" placeholder="Nama Dokumen" required>
+                <select id="doc-category">
+                    <option value="KTP">KTP</option>
+                    <option value="KK">Kartu Keluarga</option>
+                    <option value="Lainnya">Lainnya</option>
+                </select>
+                <button id="btn-save" class="btn-primary">Simpan</button>
+                <button id="nav-cancel-edit" class="btn-secondary">Batal</button>
+            </div>
+        </div>
+    </main>
+    
+    <div id="loader" class="hidden">Memproses...</div>
+
+</body>
+</html>
