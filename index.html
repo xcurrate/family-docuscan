@@ -217,14 +217,23 @@
         const SUPABASE_URL = 'https://sbxtfqidotarniglzban.supabase.co'; // <--- ISI DISINI
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNieHRmcWlkb3Rhcm5pZ2x6YmFuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMjgxODQsImV4cCI6MjA4MzgwNDE4NH0.MCiWNCcmQRBmAvAbsbcpdMbSOWAg7zPqJynpCLf1RKQ';              // <--- ISI DISINI
         
-        // Cek koneksi Supabase
-        let supabase = null;
-        try {
-            if(window.supabase) {
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                console.log("Supabase Ready");
-            }
-        } catch(e) { console.error("Supabase Error", e); }
+let supabase = null;
+
+// FUNGSI DARURAT UNTUK CEK APAKAH TOMBOL BISA JALAN
+console.log("Memulai sistem...");
+
+try {
+    // Cek apakah library Supabase terload
+    if (typeof window.supabase !== 'undefined') {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        console.log("Supabase terdeteksi dan aktif.");
+    } else {
+        console.error("PERINGATAN: Library Supabase tidak terbaca!");
+        alert("Peringatan: Koneksi ke library database gagal. Fitur Simpan Cloud mungkin tidak jalan, tapi fitur Kamera & Unduh harusnya tetap bisa.");
+    }
+} catch (e) {
+    console.error("Inisialisasi Gagal:", e);
+}
 
         // Variabel Global
         let stream = null;
