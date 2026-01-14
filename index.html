@@ -3,186 +3,438 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Family DocuScan Pro</title>
-    
-    <link rel="stylesheet" href="style.css">
-    
+    <title>DocuScan Pro Ultimate</title>
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
-    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-    
-    <script src="app.js" defer></script>
+
+    <style>
+        :root {
+            --bg-main: #121212;
+            --bg-surface: #1e1e1e;
+            --bg-surface-2: #2c2c2c;
+            --primary: #4f46e5;
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --border-radius: 12px;
+        }
+
+        /* Reset & Layout Dasar */
+        html, body {
+            margin: 0; padding: 0;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            height: 100dvh; /* Dynamic Height untuk Mobile */
+            width: 100%;
+            overflow: hidden;
+        }
+
+        /* Header */
+        header {
+            background: var(--bg-surface);
+            padding: 0 20px;
+            height: 60px;
+            display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid #333; z-index: 50;
+        }
+        h1 { font-size: 1.2rem; margin: 0; background: linear-gradient(to right, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .btn-home { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: white; }
+
+        /* View Manager */
+        main { position: relative; width: 100%; height: calc(100dvh - 60px); }
+        .view {
+            display: none; width: 100%; height: 100%;
+            position: absolute; top: 0; left: 0;
+            background: var(--bg-main);
+            overflow-y: auto; overflow-x: hidden;
+            flex-direction: column;
+        }
+        .view.active { display: flex; }
+
+        /* Home View */
+        .home-container { padding: 20px; display: flex; flex-direction: column; gap: 20px; }
+        .hero-card { background: linear-gradient(135deg, var(--bg-surface), #2d2d3a); padding: 25px; border-radius: 15px; text-align: center; border: 1px solid #444; }
+        .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .btn-menu {
+            background: var(--bg-surface); border: 1px solid #333;
+            border-radius: 15px; padding: 20px; height: 120px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: white; cursor: pointer; gap: 10px; transition: transform 0.1s;
+        }
+        .btn-menu:active { transform: scale(0.96); background: #333; }
+        .btn-menu.primary { background: var(--primary); border: none; grid-column: span 2; }
+        .icon { font-size: 2rem; }
+        .desc-box { background: var(--bg-surface-2); padding: 15px; border-radius: 10px; font-size: 0.9rem; color: #ccc; line-height: 1.5; }
+
+        /* Camera View */
+        #camera-view { background: black; }
+        video { width: 100%; height: 100%; object-fit: cover; }
+        .camera-overlay {
+            position: absolute; bottom: 0; width: 100%; height: 120px;
+            background: linear-gradient(to top, black, transparent);
+            display: flex; justify-content: center; align-items: center; gap: 30px;
+        }
+        .shutter-btn { width: 70px; height: 70px; border-radius: 50%; background: white; border: 4px solid rgba(255,255,255,0.5); cursor: pointer; }
+
+        /* Editor View */
+        .editor-layout { display: flex; flex-direction: column; height: 100%; }
+        .canvas-area {
+            flex: 1; background: black; position: relative;
+            display: flex; justify-content: center; align-items: center; overflow: hidden;
+        }
+        canvas { max-width: 100%; max-height: 100%; object-fit: contain; }
+        
+        /* Floating Crop Tools */
+        .crop-tools { position: absolute; top: 10px; right: 10px; z-index: 10; }
+        .crop-confirm { position: absolute; bottom: 20px; left: 0; width: 100%; display: flex; justify-content: center; gap: 15px; z-index: 10; }
+        .pill-btn { padding: 8px 16px; border-radius: 20px; border: none; color: white; font-weight: bold; cursor: pointer; shadow: 0 2px 5px rgba(0,0,0,0.5); }
+
+        /* Bottom Panel */
+        .controls-panel {
+            background: var(--bg-surface); padding: 20px; border-top: 1px solid #333;
+            flex-shrink: 0; max-height: 50%; overflow-y: auto; padding-bottom: 50px;
+        }
+        .filter-tabs { display: flex; gap: 10px; margin-bottom: 15px; }
+        .tab-btn { flex: 1; padding: 10px; background: #333; border: none; color: #888; border-radius: 8px; cursor: pointer; }
+        .tab-btn.active { background: #444; color: white; border: 1px solid #666; }
+        
+        .input-group { margin-bottom: 15px; display: flex; gap: 10px; }
+        input, select { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #444; background: #222; color: white; }
+        
+        .btn-purple { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 1rem; margin-top: 10px; }
+        .btn-outline { flex: 1; padding: 10px; background: transparent; border: 1px solid #555; color: white; border-radius: 8px; }
+
+        /* Utils */
+        .hidden { display: none !important; }
+        .loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 999; display: flex; justify-content: center; align-items: center; color: white; flex-direction: column; }
+    </style>
 </head>
 <body>
 
     <header>
-        <div class="header-left">
-            <button id="btn-home" class="btn-icon hidden">←</button>
-            <h1>DocuScan Pro</h1>
-        </div>
-    </header>
+        <button id="btn-back" class="btn-home hidden">←</button>
+        <h1>DocuScan Pro</h1>
+        <div style="width: 24px;"></div> </header>
 
     <main>
-<div id="home-view" class="view active">
-    <div class="home-layout">
-        
-        <div class="hero-card">
-            <h2>DocuScan Pro</h2>
-            <p style="color:#a1a1aa; margin-top:5px;">Pemindai Dokumen Web</p>
-        </div>
-
-        <div class="action-grid">
-            <button id="nav-camera" class="btn-menu-large primary">
-                <span style="font-size: 2rem;">📸</span>
-                <span>Scan Kamera</span>
-            </button>
-            
-            <button id="nav-upload" class="btn-menu-large">
-                <span style="font-size: 2rem;">📁</span>
-                <span>Upload File</span>
-                <input type="file" id="file-input" accept="image/*" hidden> 
-            </button>
-
-            <button onclick="alert('Versi: 3.1 Pro')" class="btn-menu-large">
-                <span style="font-size: 2rem;">ℹ️</span>
-                <span>Info App</span>
-            </button>
-        </div>
-
-        <div class="description-section">
-            <h3 style="margin-top:0; color:white;">Cara Menggunakan:</h3>
-            <ul style="padding-left: 20px; margin-bottom: 0;">
-                <li>Klik tombol <b>Scan Kamera</b> untuk memotret dokumen.</li>
-                <li>Atau pilih <b>Upload File</b> jika sudah ada foto di galeri.</li>
-                <li>Gunakan fitur <b>Crop</b> untuk meluruskan kertas.</li>
-                <li>Pilih filter <b>B&W</b> agar tulisan lebih jelas.</li>
-                <li>Klik tombol Ungu (Simpan) di halaman Editor untuk menyimpan.</li>
-            </ul>
-        </div>
-        
-        <div style="height: 50px;"></div>
-    </div>
-</div>
-
-
-<div id="editor-view" class="view">
-    <div class="editor-layout">
-        <div class="canvas-wrapper">
-            <canvas id="canvas"></canvas>
-            <img id="image-for-cropper" class="hidden">
-            
-            <div style="position: absolute; top: 10px; right: 10px; z-index: 10;">
-                <button id="btn-start-crop" style="background:rgba(0,0,0,0.6); color:white; border:none; padding:8px 12px; border-radius:20px;">✂️ Crop</button>
-            </div>
-            
-            <div id="crop-actions" class="hidden" style="position: absolute; bottom: 10px; left:0; width:100%; display:flex; justify-content:center; gap:10px; z-index:10;">
-                <button id="btn-apply-crop" style="background:#22c55e; color:white; border:none; padding:10px 20px; border-radius:20px;">✅ OK</button>
-                <button id="btn-cancel-crop" style="background:#ef4444; color:white; border:none; padding:10px 20px; border-radius:20px;">❌ Batal</button>
-            </div>
-        </div>
-
-        <div class="controls-panel">
-            <div style="display:flex; gap:10px; margin-bottom:15px; overflow-x:auto;">
-                <button data-filter="original" class="tab-btn active" style="flex:1; padding:10px; background:#333; color:white; border:none; border-radius:8px;">Asli</button>
-                <button data-filter="magic" class="tab-btn" style="flex:1; padding:10px; background:#333; color:white; border:none; border-radius:8px;">Magic</button>
-                <button data-filter="bw" class="tab-btn" style="flex:1; padding:10px; background:#333; color:white; border:none; border-radius:8px;">B&W</button>
-            </div>
-
-            <div class="input-row">
-                <input type="text" id="doc-name" placeholder="Nama Dokumen" required>
-            </div>
-            <div class="input-row">
-                <select id="doc-category">
-                    <option value="KTP">KTP</option>
-                    <option value="KK">Kartu Keluarga</option>
-                    <option value="Lainnya">Lainnya</option>
-                </select>
-                <select id="compression-level">
-                    <option value="0.8">Size: Sedang</option>
-                    <option value="0.5">Size: Kecil</option>
-                </select>
-            </div>
-
-            <div style="display:flex; gap:10px; margin-bottom:10px;">
-                <button id="btn-download-jpg" style="flex:1; padding:12px; background:none; border:1px solid #555; color:white; border-radius:8px;">Unduh JPG</button>
-                <button id="btn-download-pdf" style="flex:1; padding:12px; background:none; border:1px solid #555; color:white; border-radius:8px;">Unduh PDF</button>
-            </div>
-
-            <button id="btn-save-cloud" class="btn-action-primary">☁️ Simpan ke Database</button>
-        </div>
-    </div>
-</div>
-
-
-            <div class="canvas-container">
-                <canvas id="canvas"></canvas>
-                <img id="image-for-cropper" class="hidden">
-            </div>
-            
-            <div class="editor-controls-wrapper">
-                 <div class="filter-tabs">
-                    <button data-filter="original" class="tab-btn active">Asli</button>
-                    <button data-filter="magic" class="tab-btn">Magic ✨</button>
-                    <button data-filter="bw" class="tab-btn">Dokumen B&W</button>
+        <div id="home-view" class="view active">
+            <div class="home-container">
+                <div class="hero-card">
+                    <h2>Selamat Datang</h2>
+                    <p>Aplikasi Scanner Keluarga</p>
+                </div>
+                
+                <div class="action-grid">
+                    <button id="btn-nav-scan" class="btn-menu primary">
+                        <span class="icon">📸</span>
+                        <span>Scan Kamera</span>
+                    </button>
+                    <button id="btn-nav-upload" class="btn-menu">
+                        <span class="icon">📁</span>
+                        <span>Upload File</span>
+                        <input type="file" id="file-input" accept="image/*" hidden>
+                    </button>
                 </div>
 
-                <div class="form-section">
-                     <div class="input-group">
-                        <input type="text" id="doc-name" placeholder="Nama Dokumen (mis: KTP Ayah)" required>
+                <div class="desc-box">
+                    <strong>Cara Pakai:</strong><br>
+                    1. Gunakan tombol Scan untuk memotret.<br>
+                    2. Gunakan Crop untuk meluruskan dokumen.<br>
+                    3. Pilih Filter B&W agar tulisan tajam.<br>
+                    4. Simpan ke database atau unduh PDF.
+                </div>
+            </div>
+        </div>
+
+        <div id="camera-view" class="view">
+            <video id="video" autoplay playsinline muted></video>
+            <div class="camera-overlay">
+                <button onclick="goHome()" style="background:none; border:none; color:white;">Batal</button>
+                <button id="btn-shutter" class="shutter-btn"></button>
+                <div style="width:40px"></div>
+            </div>
+        </div>
+
+        <div id="editor-view" class="view">
+            <div class="editor-layout">
+                <div class="canvas-area">
+                    <canvas id="canvas"></canvas>
+                    <img id="crop-img" class="hidden" style="max-width:100%; max-height:100%;">
+                    
+                    <div class="crop-tools">
+                        <button id="btn-start-crop" class="pill-btn" style="background:rgba(0,0,0,0.6);">✂️ Crop</button>
+                    </div>
+                    <div id="crop-actions" class="crop-confirm hidden">
+                        <button id="btn-cancel-crop" class="pill-btn" style="background:#ef4444;">Batal</button>
+                        <button id="btn-apply-crop" class="pill-btn" style="background:#22c55e;">✅ OK</button>
+                    </div>
+                </div>
+
+                <div class="controls-panel">
+                    <div class="filter-tabs">
+                        <button class="tab-btn active" onclick="applyFilter('original')">Asli</button>
+                        <button class="tab-btn" onclick="applyFilter('magic')">Magic</button>
+                        <button class="tab-btn" onclick="applyFilter('bw')">B&W</button>
+                    </div>
+
+                    <div class="input-group">
+                        <input type="text" id="doc-name" placeholder="Nama Dokumen (Wajib)">
+                    </div>
+                    <div class="input-group">
                         <select id="doc-category">
                             <option value="KTP">KTP</option>
                             <option value="KK">Kartu Keluarga</option>
-                            <option value="Akta">Akta Kelahiran</option>
-                            <option value="Ijazah">Ijazah/Sertifikat</option>
-                            <option value="Lainnya" selected>Lainnya</option>
+                            <option value="Lainnya">Lainnya</option>
+                        </select>
+                        <select id="compression">
+                            <option value="0.8">Size: Sedang</option>
+                            <option value="0.5">Size: Kecil</option>
                         </select>
                     </div>
 
-                    <div class="compression-select">
-                         <label for="compression-level">Ukuran File:</label>
-                        <select id="compression-level">
-                            <option value="0.92">Tinggi (Standar)</option>
-                            <option value="0.7">Sedang (Lebih Kecil)</option>
-                            <option value="0.5">Rendah (Hemat Kuota)</option>
-                        </select>
+                    <div class="input-group">
+                        <button id="btn-dl-jpg" class="btn-outline">⬇ JPG</button>
+                        <button id="btn-dl-pdf" class="btn-outline">⬇ PDF</button>
                     </div>
-
-                    <div class="action-buttons-grid">
-                        <button id="btn-download-jpg" class="btn-action outline">⬇️ Unduh JPG</button>
-                        <button id="btn-download-pdf" class="btn-action outline">📄 Unduh PDF</button>
-                        <button id="btn-save-cloud" class="btn-action primary full-width">☁️ Simpan ke Database</button>
-                    </div>
+                    <button id="btn-save-cloud" class="btn-purple">☁️ Simpan ke Cloud</button>
                 </div>
             </div>
         </div>
-
-        <div id="about-view" class="view content-view">
-            <h2>Tentang DocuScan Pro</h2>
-            <div class="info-block">
-                <h3>Cara Kerja Alat Ini:</h3>
-                <ol>
-                    <li>**Tangkap:** Menggunakan kamera HP untuk mengambil citra dokumen.</li>
-                    <li>**Proses Lokal:** Semua pemrosesan gambar (filter, crop) dilakukan langsung di browser HP Anda (Client-side) agar cepat dan privasi terjaga sebelum diupload.</li>
-                    <li>**Filter Cerdas:** <ul>
-                            <li>*Magic:* Meningkatkan kontras dan kecerahan untuk kertas buram.</li>
-                            <li>*B&W:* Menggunakan teknik 'Thresholding' untuk mengubah gambar menjadi hitam putih murni, menghilangkan bayangan.</li>
-                        </ul>
-                    </li>
-                    <li>**Penyimpanan:** Hasil akhir diamankan di Supabase Cloud Storage.</li>
-                </ol>
-            </div>
-             <p>Versi 3.0 - Modern UI & Advanced Tools</p>
-        </div>
-
     </main>
-    
-    <div id="loader" class="loader-overlay hidden">
-        <div class="spinner"></div>
-        <p id="loader-text">Memproses...</p>
+
+    <div id="loader" class="loader hidden">
+        <div style="font-size:2rem; animation: spin 1s infinite;">⏳</div>
+        <p>Memproses...</p>
     </div>
 
+    <script>
+        // ==========================================
+        // KONFIGURASI (WAJIB DIISI)
+        // ==========================================
+        const SUPABASE_URL = 'https://GANTI_URL_ANDA.supabase.co'; // <--- ISI DISINI
+        const SUPABASE_KEY = 'GANTI_KEY_ANDA_DISINI';              // <--- ISI DISINI
+        
+        // Cek koneksi Supabase
+        let supabase = null;
+        try {
+            if(window.supabase) {
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                console.log("Supabase Ready");
+            }
+        } catch(e) { console.error("Supabase Error", e); }
+
+        // Variabel Global
+        let stream = null;
+        let originalData = null;
+        let cropper = null;
+        
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        const imgForCrop = document.getElementById('crop-img');
+        const loader = document.getElementById('loader');
+
+        // --- NAVIGATION ---
+        function showView(id) {
+            document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            
+            // Tombol Back
+            const btnBack = document.getElementById('btn-back');
+            if(id === 'home-view') {
+                btnBack.classList.add('hidden');
+                stopCamera();
+                resetEditor();
+            } else {
+                btnBack.classList.remove('hidden');
+                btnBack.onclick = goHome;
+            }
+        }
+
+        function goHome() { showView('home-view'); }
+
+        // --- CAMERA ---
+        document.getElementById('btn-nav-scan').onclick = async () => {
+            try {
+                showView('camera-view');
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment' }
+                });
+                video.srcObject = stream;
+            } catch (err) {
+                alert("Gagal akses kamera belakang, mencoba kamera depan...");
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    video.srcObject = stream;
+                } catch(e) { alert("Kamera error: " + e.message); goHome(); }
+            }
+        };
+
+        document.getElementById('btn-shutter').onclick = () => {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0);
+            loadImageToEditor();
+            stopCamera();
+        };
+
+        function stopCamera() {
+            if(stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+        }
+
+        // --- UPLOAD ---
+        document.getElementById('btn-nav-upload').onclick = () => document.getElementById('file-input').click();
+        
+        document.getElementById('file-input').onchange = (e) => {
+            const file = e.target.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const img = new Image();
+                img.onload = () => {
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0);
+                    loadImageToEditor();
+                };
+                img.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+        };
+
+        // --- EDITOR LOGIC ---
+        function loadImageToEditor() {
+            originalData = ctx.getImageData(0,0, canvas.width, canvas.height);
+            resetEditor();
+            showView('editor-view');
+        }
+
+        function resetEditor() {
+            if(cropper) { cropper.destroy(); cropper = null; }
+            imgForCrop.classList.add('hidden');
+            canvas.classList.remove('hidden');
+            document.getElementById('btn-start-crop').classList.remove('hidden');
+            document.getElementById('crop-actions').classList.add('hidden');
+        }
+
+        // --- CROPPER ---
+        document.getElementById('btn-start-crop').onclick = () => {
+            canvas.classList.add('hidden');
+            imgForCrop.classList.remove('hidden');
+            imgForCrop.src = canvas.toDataURL();
+            
+            document.getElementById('btn-start-crop').classList.add('hidden');
+            document.getElementById('crop-actions').classList.remove('hidden');
+
+            cropper = new Cropper(imgForCrop, {
+                viewMode: 1, dragMode: 'move', autoCropArea: 0.8
+            });
+        };
+
+        document.getElementById('btn-cancel-crop').onclick = resetEditor;
+        
+        document.getElementById('btn-apply-crop').onclick = () => {
+            const cropped = cropper.getCroppedCanvas();
+            canvas.width = cropped.width;
+            canvas.height = cropped.height;
+            ctx.drawImage(cropped, 0, 0);
+            originalData = ctx.getImageData(0,0, canvas.width, canvas.height); // Update original data
+            resetEditor();
+        };
+
+        // --- FILTERS ---
+        window.applyFilter = (type) => {
+            if(!originalData) return;
+            loader.classList.remove('hidden');
+            setTimeout(() => {
+                ctx.putImageData(originalData, 0, 0); // Reset
+                
+                if(type === 'magic') {
+                    createImageBitmap(originalData).then(bmp => {
+                        ctx.save();
+                        ctx.filter = 'contrast(1.4) brightness(1.1) saturate(1.2)';
+                        ctx.drawImage(bmp, 0, 0);
+                        ctx.restore();
+                        loader.classList.add('hidden');
+                    });
+                } else if(type === 'bw') {
+                    const d = ctx.getImageData(0,0,canvas.width,canvas.height);
+                    for(let i=0; i<d.data.length; i+=4) {
+                        const g = 0.299*d.data[i] + 0.587*d.data[i+1] + 0.114*d.data[i+2];
+                        const v = g < 128 ? 0 : 255;
+                        d.data[i] = d.data[i+1] = d.data[i+2] = v;
+                    }
+                    ctx.putImageData(d, 0, 0);
+                    loader.classList.add('hidden');
+                } else {
+                    loader.classList.add('hidden');
+                }
+            }, 50);
+        };
+
+        // --- SAVE & DOWNLOAD ---
+        function getSafeName() {
+            return (document.getElementById('doc-name').value || 'Scan').replace(/\s/g, '_');
+        }
+        function getQuality() {
+            return parseFloat(document.getElementById('compression').value);
+        }
+
+        document.getElementById('btn-dl-jpg').onclick = () => {
+            const link = document.createElement('a');
+            link.download = getSafeName() + '.jpg';
+            link.href = canvas.toDataURL('image/jpeg', getQuality());
+            link.click();
+        };
+
+        document.getElementById('btn-dl-pdf').onclick = () => {
+            loader.classList.remove('hidden');
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const imgData = canvas.toDataURL('image/jpeg', getQuality());
+            const props = pdf.getImageProperties(imgData);
+            const pdfW = 210, pdfH = 297;
+            const ratio = props.width / props.height;
+            let w = pdfW - 20, h = w / ratio;
+            if(h > pdfH - 20) { h = pdfH - 20; w = h * ratio; }
+            
+            pdf.addImage(imgData, 'JPEG', 10, 10, w, h);
+            pdf.save(getSafeName() + '.pdf');
+            loader.classList.add('hidden');
+        };
+
+        document.getElementById('btn-save-cloud').onclick = async () => {
+            const name = document.getElementById('doc-name').value;
+            if(!name) return alert("Isi nama dokumen dulu!");
+            
+            loader.classList.remove('hidden');
+            canvas.toBlob(async (blob) => {
+                try {
+                    const fileName = Date.now() + '_' + getSafeName() + '.jpg';
+                    const { error: upErr } = await supabase.storage.from('scans').upload(fileName, blob);
+                    if(upErr) throw upErr;
+                    
+                    const { data } = supabase.storage.from('scans').getPublicUrl(fileName);
+                    const { error: dbErr } = await supabase.from('documents').insert([{
+                        name: name,
+                        category: document.getElementById('doc-category').value,
+                        image_url: data.publicUrl
+                    }]);
+                    if(dbErr) throw dbErr;
+                    
+                    alert("Berhasil disimpan ke Cloud! ✅");
+                    goHome();
+                } catch(e) {
+                    alert("Gagal: " + e.message);
+                } finally {
+                    loader.classList.add('hidden');
+                }
+            }, 'image/jpeg', getQuality());
+        };
+
+    </script>
 </body>
 </html>
