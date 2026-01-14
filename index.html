@@ -26,47 +26,96 @@
     </header>
 
     <main>
-        <div id="home-view" class="view active">
-            <div class="hero-section">
-                <h2>Pindai & Arsipkan Dokumen Keluarga</h2>
-                <p>Cepat, Aman, dan Berkualitas Tinggi.</p>
+<div id="home-view" class="view active">
+    <div class="home-layout">
+        
+        <div class="hero-card">
+            <h2>DocuScan Pro</h2>
+            <p style="color:#a1a1aa; margin-top:5px;">Pemindai Dokumen Web</p>
+        </div>
+
+        <div class="action-grid">
+            <button id="nav-camera" class="btn-menu-large primary">
+                <span style="font-size: 2rem;">📸</span>
+                <span>Scan Kamera</span>
+            </button>
+            
+            <button id="nav-upload" class="btn-menu-large">
+                <span style="font-size: 2rem;">📁</span>
+                <span>Upload File</span>
+                <input type="file" id="file-input" accept="image/*" hidden> 
+            </button>
+
+            <button onclick="alert('Versi: 3.1 Pro')" class="btn-menu-large">
+                <span style="font-size: 2rem;">ℹ️</span>
+                <span>Info App</span>
+            </button>
+        </div>
+
+        <div class="description-section">
+            <h3 style="margin-top:0; color:white;">Cara Menggunakan:</h3>
+            <ul style="padding-left: 20px; margin-bottom: 0;">
+                <li>Klik tombol <b>Scan Kamera</b> untuk memotret dokumen.</li>
+                <li>Atau pilih <b>Upload File</b> jika sudah ada foto di galeri.</li>
+                <li>Gunakan fitur <b>Crop</b> untuk meluruskan kertas.</li>
+                <li>Pilih filter <b>B&W</b> agar tulisan lebih jelas.</li>
+                <li>Klik tombol Ungu (Simpan) di halaman Editor untuk menyimpan.</li>
+            </ul>
+        </div>
+        
+        <div style="height: 50px;"></div>
+    </div>
+</div>
+
+
+<div id="editor-view" class="view">
+    <div class="editor-layout">
+        <div class="canvas-wrapper">
+            <canvas id="canvas"></canvas>
+            <img id="image-for-cropper" class="hidden">
+            
+            <div style="position: absolute; top: 10px; right: 10px; z-index: 10;">
+                <button id="btn-start-crop" style="background:rgba(0,0,0,0.6); color:white; border:none; padding:8px 12px; border-radius:20px;">✂️ Crop</button>
             </div>
             
-            <div class="menu-grid">
-                <button id="nav-camera" class="menu-card primary">
-                    <span class="icon">📸</span>
-                    <span class="label">Mulai Scan Baru</span>
-                </button>
-                
-                <button id="nav-upload" class="menu-card secondary">
-                    <span class="icon">📁</span>
-                    <span class="label">Upload dari Galeri</span>
-                    <input type="file" id="file-input" accept="image/*" hidden>
-                </button>
-                
-                 <button id="nav-about" class="menu-card tertiary">
-                    <span class="icon">ℹ️</span>
-                    <span class="label">Cara Kerja & Info</span>
-                </button>
+            <div id="crop-actions" class="hidden" style="position: absolute; bottom: 10px; left:0; width:100%; display:flex; justify-content:center; gap:10px; z-index:10;">
+                <button id="btn-apply-crop" style="background:#22c55e; color:white; border:none; padding:10px 20px; border-radius:20px;">✅ OK</button>
+                <button id="btn-cancel-crop" style="background:#ef4444; color:white; border:none; padding:10px 20px; border-radius:20px;">❌ Batal</button>
             </div>
         </div>
 
-        <div id="camera-view" class="view">
-            <video id="video" autoplay playsinline muted></video>
-            <div class="camera-controls">
-                <button id="nav-cancel-cam" class="btn-text">Batal</button>
-                <button id="btn-capture" class="btn-shutter"></button>
-                <div style="width: 50px;"></div> </div>
-        </div>
-
-        <div id="editor-view" class="view editor-layout">
-            <div class="editor-toolbar top">
-                <button id="btn-start-crop" class="btn-tool">✂️ Potong/Luruskan</button>
-                 <div id="crop-actions" class="hidden">
-                    <button id="btn-apply-crop" class="btn-tool confirm">✅ Terapkan</button>
-                    <button id="btn-cancel-crop" class="btn-tool cancel">❌ Batal</button>
-                </div>
+        <div class="controls-panel">
+            <div style="display:flex; gap:10px; margin-bottom:15px; overflow-x:auto;">
+                <button data-filter="original" class="tab-btn active" style="flex:1; padding:10px; background:#333; color:white; border:none; border-radius:8px;">Asli</button>
+                <button data-filter="magic" class="tab-btn" style="flex:1; padding:10px; background:#333; color:white; border:none; border-radius:8px;">Magic</button>
+                <button data-filter="bw" class="tab-btn" style="flex:1; padding:10px; background:#333; color:white; border:none; border-radius:8px;">B&W</button>
             </div>
+
+            <div class="input-row">
+                <input type="text" id="doc-name" placeholder="Nama Dokumen" required>
+            </div>
+            <div class="input-row">
+                <select id="doc-category">
+                    <option value="KTP">KTP</option>
+                    <option value="KK">Kartu Keluarga</option>
+                    <option value="Lainnya">Lainnya</option>
+                </select>
+                <select id="compression-level">
+                    <option value="0.8">Size: Sedang</option>
+                    <option value="0.5">Size: Kecil</option>
+                </select>
+            </div>
+
+            <div style="display:flex; gap:10px; margin-bottom:10px;">
+                <button id="btn-download-jpg" style="flex:1; padding:12px; background:none; border:1px solid #555; color:white; border-radius:8px;">Unduh JPG</button>
+                <button id="btn-download-pdf" style="flex:1; padding:12px; background:none; border:1px solid #555; color:white; border-radius:8px;">Unduh PDF</button>
+            </div>
+
+            <button id="btn-save-cloud" class="btn-action-primary">☁️ Simpan ke Database</button>
+        </div>
+    </div>
+</div>
+
 
             <div class="canvas-container">
                 <canvas id="canvas"></canvas>
